@@ -9,10 +9,10 @@ export default function App() {
   return (
     <Container>
       <Box sx={{ display: "flex", gap: 2, my: 2 }}>
-        <Button variant="contained" onClick={() => setPage("staff")}>
-          Staff Management
+        <Button onClick={() => setPage("staff")} variant="contained">
+          Staff
         </Button>
-        <Button variant="contained" onClick={() => setPage("schedule")}>
+        <Button onClick={() => setPage("schedule")} variant="contained">
           Schedule
         </Button>
       </Box>

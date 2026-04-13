@@ -7,9 +7,9 @@ import {
     TableRow,
     TableCell,
     TableBody,
-    Paper
+    Paper,
+    Box
 } from "@mui/material";
-import initialData from "../data/staff.json";
 
 export default function StaffPage() {
     const [staff, setStaff] = useState([]);
@@ -20,44 +20,51 @@ export default function StaffPage() {
         otherDetails: ""
     });
 
-    useEffect(() => {
-        const stored = localStorage.getItem("staff");
-        setStaff(stored ? JSON.parse(stored) : initialData);
-    }, []);
-
-    const save = (data) => {
+    const loadStaff = async () => {
+        const res = await fetch("http://localhost:5000/staff");
+        const data = await res.json();
         setStaff(data);
-        localStorage.setItem("staff", JSON.stringify(data));
     };
 
-    const addStaff = () => {
-        if (!form.name || !form.mobileNo) return;
+    useEffect(() => {
+        loadStaff();
+    }, []);
 
-        const newStaff = {
-            id: Date.now().toString(),
-            ...form
-        };
+    const addStaff = async () => {
+        const res = await fetch("http://localhost:5000/staff", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(form)
+        });
 
-        save([...staff, newStaff]);
+        const newStaff = await res.json();
+        setStaff([...staff, newStaff]);
+
         setForm({ name: "", mobileNo: "", emailId: "", otherDetails: "" });
     };
 
-    const deleteStaff = (id) => {
-        save(staff.filter((s) => s.id !== id));
+    const deleteStaff = async (id) => {
+        await fetch(`http://localhost:5000/staff/${id}`, {
+            method: "DELETE"
+        });
+
+        setStaff(staff.filter((s) => s.id !== id));
     };
 
     return (
         <Paper sx={{ p: 2 }}>
             <h2>Staff Management</h2>
 
-            <TextField label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <TextField label="Mobile" value={form.mobileNo} onChange={(e) => setForm({ ...form, mobileNo: e.target.value })} />
-            <TextField label="Email" value={form.emailId} onChange={(e) => setForm({ ...form, emailId: e.target.value })} />
-            <TextField label="Other" value={form.otherDetails} onChange={(e) => setForm({ ...form, otherDetails: e.target.value })} />
-
-            <Button onClick={addStaff} variant="contained" sx={{ m: 1 }}>
-                Add
-            </Button>
+            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+                <TextField label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <TextField label="Mobile" value={form.mobileNo} onChange={(e) => setForm({ ...form, mobileNo: e.target.value })} />
+                <TextField label="Email" value={form.emailId} onChange={(e) => setForm({ ...form, emailId: e.target.value })} />
+                <Button onClick={addStaff} variant="contained">
+                    Add
+                </Button>
+            </Box>
 
             <Table>
                 <TableHead>
@@ -67,6 +74,7 @@ export default function StaffPage() {
                         <TableCell>Action</TableCell>
                     </TableRow>
                 </TableHead>
+
                 <TableBody>
                     {staff.map((s) => (
                         <TableRow key={s.id}>

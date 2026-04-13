@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Autocomplete,
     TextField,
@@ -18,8 +18,10 @@ export default function SchedulePage() {
     const [dates, setDates] = useState([]);
 
     useEffect(() => {
-        const stored = localStorage.getItem("staff");
-        setStaff(stored ? JSON.parse(stored) : []);
+        fetch("http://localhost:5000/staff")
+            .then((res) => res.json())
+            .then(setStaff);
+
         generateDates(7);
     }, []);
 
@@ -33,23 +35,19 @@ export default function SchedulePage() {
 
     const addStaff = (value) => {
         if (!value) return;
-
         if (selectedStaff.find((s) => s.id === value.id)) return;
 
-        setSelectedStaff([
-            ...selectedStaff,
-            { ...value, availability: {} }
-        ]);
+        setSelectedStaff([...selectedStaff, { ...value, availability: {} }]);
     };
 
     const removeStaff = (id) => {
         setSelectedStaff(selectedStaff.filter((s) => s.id !== id));
     };
 
-    const toggle = (staffId, date) => {
+    const toggle = (id, date) => {
         setSelectedStaff((prev) =>
             prev.map((s) =>
-                s.id === staffId
+                s.id === id
                     ? {
                         ...s,
                         availability: {
@@ -72,7 +70,6 @@ export default function SchedulePage() {
             }))
         }));
 
-        console.log(output);
         alert(JSON.stringify(output, null, 2));
     };
 
