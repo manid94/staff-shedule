@@ -1,0 +1,152 @@
+Software Requirement Specification (SRS)
+    Project: Staff Availability & Scheduling System
+    1. 📌 Introduction
+    1.1 Purpose
+
+    The purpose of this system is to manage staff details and capture their availability to generate structured data for scheduling.
+
+    1.2 Scope
+
+    The system will:
+
+    Manage staff information
+    Allow dynamic selection of staff
+    Capture availability over a selected date range
+    Generate structured JSON output for scheduling use
+2. 🧩 System Overview
+
+The application consists of two main modules/pages:
+
+Staff Management Module
+Availability & Grid Management Module
+3. 📄 Module 1: Staff Management
+3.1 Functional Requirements
+FR1: Load Staff Data
+System shall load staff data from a local JSON source on initialization.
+FR2: Add Staff
+System shall provide a form to add new staff.
+Fields required:
+Name (mandatory)
+Mobile Number (mandatory)
+Email ID (optional)
+Other Details (optional)
+On submission:
+Staff shall be added to the list
+Data source shall be updated
+FR3: Delete Staff
+System shall allow deletion of staff records.
+On deletion:
+Staff shall be removed from list
+Data source shall be updated
+FR4: Display Staff List
+System shall display all staff in a list/table format.
+3.2 Data Model
+{
+  "id": "string (unique)",
+  "name": "string",
+  "mobileNo": "string",
+  "emailId": "string",
+  "otherDetails": "string"
+}
+4. 📄 Module 2: Availability & Grid Management
+4.1 Functional Requirements
+FR5: Staff Search
+System shall allow searching staff by:
+Name
+Mobile Number (optional)
+FR6: Add Staff to Grid
+User shall be able to select staff from search results.
+On selection:
+Staff shall be added to the availability grid
+A new row shall be created
+System shall prevent duplicate staff entries.
+FR7: Remove Staff from Grid
+Each staff row shall have a remove option.
+On removal:
+Staff row shall be deleted
+Associated availability data shall be removed
+FR8: Date Range Selection
+System shall provide date range options:
+Current Week (default)
+Next N days (configurable, e.g., 10 days)
+Custom range (start date and end date)
+FR9: Dynamic Grid Generation
+System shall generate a grid based on:
+Selected staff (rows)
+Selected date range (columns)
+FR10: Availability Input
+Each grid cell shall represent:
+Staff vs Date
+User shall be able to toggle:
+Available (true)
+Not Available (false)
+FR11: Dynamic Grid Behavior
+When staff is added:
+A new row shall be created
+Default availability shall be initialized
+When staff is removed:
+Corresponding row and data shall be removed
+When date range changes:
+Columns shall update dynamically
+Existing overlapping data should be preserved
+FR12: Generate Availability Data
+System shall generate structured JSON output on submission.
+4.2 Output Data Structure
+[
+  {
+    "staffId": "string",
+    "name": "string",
+    "availability": [
+      {
+        "date": "YYYY-MM-DD",
+        "available": true
+      }
+    ]
+  }
+]
+4.3 Internal State Model
+{
+  "selectedStaff": [
+    {
+      "staffId": "string",
+      "name": "string",
+      "availability": {
+        "YYYY-MM-DD": true
+      }
+    }
+  ],
+  "dateRange": {
+    "start": "YYYY-MM-DD",
+    "end": "YYYY-MM-DD"
+  }
+}
+5. ⚙️ Non-Functional Requirements
+NFR1: Performance
+System should handle at least 50 staff with 30-day range efficiently.
+NFR2: Usability
+UI should be intuitive and responsive.
+NFR3: Data Integrity
+No duplicate staff in grid.
+Data consistency must be maintained on add/remove operations.
+NFR4: Scalability
+System should allow future extension for:
+Time-slot scheduling
+Backend database integration
+6. 🚫 Constraints
+Local JSON file is used as initial data source.
+Direct file write may require backend support.
+7. 🔮 Future Enhancements
+Shift-based scheduling (morning/evening)
+Auto schedule generation
+Conflict detection
+Export to Excel
+Role-based access
+8. ✅ Acceptance Criteria
+User can add/delete staff
+User can dynamically add/remove staff in grid
+Grid updates correctly based on date range
+Availability can be toggled
+JSON output is generated correctly
+🧠 Final Summary
+
+The system enables managing staff and dynamically building an availability grid where staff can be added or removed, and their availability across a selected date range is captured and exported as structured JSON.
