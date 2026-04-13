@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Container, Button, Box } from "@mui/material";
 import StaffPage from "./pages/StaffPage";
 import SchedulePage from "./pages/SchedulePage";
+import AllotmentPage from "./pages/AllotmentPage";
 
 export default function App() {
   const [page, setPage] = useState("staff");
@@ -13,11 +14,16 @@ export default function App() {
           Staff
         </Button>
         <Button onClick={() => setPage("schedule")} variant="contained">
-          Schedule
+          Availability
+        </Button>
+        <Button onClick={() => setPage("allotment")} variant="contained">
+          Allotment
         </Button>
       </Box>
 
-      {page === "staff" ? <StaffPage /> : <SchedulePage />}
+      {page === "staff" && <StaffPage />}
+      {page === "schedule" && <SchedulePage />}
+      {page === "allotment" && <AllotmentPage />}
     </Container>
   );
 }

@@ -2,125 +2,210 @@ import React, { useEffect, useState } from "react";
 import {
     Autocomplete,
     TextField,
+    Button,
+    Paper,
     Table,
+    TableHead,
     TableRow,
     TableCell,
-    TableHead,
     TableBody,
-    Button,
-    Paper
+    Checkbox,
+    Box
 } from "@mui/material";
-import dayjs from "dayjs";
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function SchedulePage() {
     const [staff, setStaff] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState([]);
-    const [dates, setDates] = useState([]);
 
     useEffect(() => {
         fetch("http://localhost:5000/staff")
             .then((res) => res.json())
             .then(setStaff);
-
-        generateDates(7);
     }, []);
-
-    const generateDates = (days) => {
-        const arr = [];
-        for (let i = 0; i < days; i++) {
-            arr.push(dayjs().add(i, "day").format("YYYY-MM-DD"));
-        }
-        setDates(arr);
-    };
 
     const addStaff = (value) => {
         if (!value) return;
-        if (selectedStaff.find((s) => s.id === value.id)) return;
 
-        setSelectedStaff([...selectedStaff, { ...value, availability: {} }]);
+        if (selectedStaff.find((s) => s.staffId === value.id)) return;
+
+        setSelectedStaff([
+            ...selectedStaff,
+            {
+                staffId: value.id,
+                name: value.name,
+                availability: {}
+            }
+        ]);
     };
 
-    const removeStaff = (id) => {
-        setSelectedStaff(selectedStaff.filter((s) => s.id !== id));
+    const toggleDay = (i, day) => {
+        const updated = [...selectedStaff];
+
+        if (!updated[i].availability[day]) {
+            updated[i].availability[day] = {
+                fullDay: true,
+                slots: []
+            };
+        } else {
+            delete updated[i].availability[day];
+        }
+
+        setSelectedStaff(updated);
     };
 
-    const toggle = (id, date) => {
-        setSelectedStaff((prev) =>
-            prev.map((s) =>
-                s.id === id
-                    ? {
-                        ...s,
-                        availability: {
-                            ...s.availability,
-                            [date]: !s.availability[date]
-                        }
-                    }
-                    : s
-            )
-        );
+    const toggleFullDay = (i, day) => {
+        const updated = [...selectedStaff];
+        const dayData = updated[i].availability[day];
+
+        dayData.fullDay = !dayData.fullDay;
+
+        if (dayData.fullDay) {
+            dayData.slots = [];
+        }
+
+        setSelectedStaff(updated);
+    };
+
+    const addSlot = (i, day) => {
+        const updated = [...selectedStaff];
+
+        updated[i].availability[day].slots.push({
+            start: "",
+            end: ""
+        });
+
+        updated[i].availability[day].fullDay = false;
+
+        setSelectedStaff(updated);
+    };
+
+    const updateSlot = (i, day, j, field, value) => {
+        const updated = [...selectedStaff];
+        updated[i].availability[day].slots[j][field] = value;
+        setSelectedStaff(updated);
     };
 
     const generateJSON = () => {
         const output = selectedStaff.map((s) => ({
-            staffId: s.id,
+            staffId: s.staffId,
             name: s.name,
-            availability: dates.map((d) => ({
-                date: d,
-                available: !!s.availability[d]
-            }))
+            availability: Object.entries(s.availability).map(
+                ([day, value]) => ({
+                    day,
+                    fullDay: value.fullDay,
+                    slots: value.slots
+                })
+            )
         }));
 
-        alert(JSON.stringify(output, null, 2));
+        localStorage.setItem("availability", JSON.stringify(output));
+        alert("Saved!");
     };
 
     return (
         <Paper sx={{ p: 2 }}>
-            <h2>Schedule</h2>
+            <h2>Weekly Availability (Grid)</h2>
 
             <Autocomplete
                 options={staff}
                 getOptionLabel={(o) => o.name}
                 onChange={(e, v) => addStaff(v)}
-                renderInput={(params) => <TextField {...params} label="Add Staff" />}
+                renderInput={(params) => (
+                    <TextField {...params} label="Add Staff" />
+                )}
+                sx={{ mb: 2 }}
             />
-
-            <Button onClick={() => generateDates(7)}>7 Days</Button>
-            <Button onClick={() => generateDates(10)}>10 Days</Button>
 
             <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell>Staff</TableCell>
-                        {dates.map((d) => (
+                        {DAYS.map((d) => (
                             <TableCell key={d}>{d}</TableCell>
                         ))}
-                        <TableCell>Action</TableCell>
                     </TableRow>
                 </TableHead>
 
                 <TableBody>
-                    {selectedStaff.map((s) => (
-                        <TableRow key={s.id}>
+                    {selectedStaff.map((s, i) => (
+                        <TableRow key={s.staffId}>
                             <TableCell>{s.name}</TableCell>
 
-                            {dates.map((d) => (
-                                <TableCell key={d} onClick={() => toggle(s.id, d)}>
-                                    {s.availability[d] ? "✅" : "❌"}
-                                </TableCell>
-                            ))}
+                            {DAYS.map((day) => {
+                                const dayData = s.availability[day];
 
-                            <TableCell>
-                                <Button color="error" onClick={() => removeStaff(s.id)}>
-                                    Remove
-                                </Button>
-                            </TableCell>
+                                return (
+                                    <TableCell key={day}>
+                                        <Checkbox
+                                            checked={!!dayData}
+                                            onChange={() => toggleDay(i, day)}
+                                        />
+
+                                        {dayData && (
+                                            <Box>
+                                                <Button
+                                                    size="small"
+                                                    onClick={() => toggleFullDay(i, day)}
+                                                >
+                                                    {dayData.fullDay ? "Full" : "Slots"}
+                                                </Button>
+
+                                                {!dayData.fullDay &&
+                                                    dayData.slots.map((slot, j) => (
+                                                        <Box key={j} sx={{ display: "flex", gap: 1 }}>
+                                                            <TextField
+                                                                type="time"
+                                                                size="small"
+                                                                value={slot.start}
+                                                                onChange={(e) =>
+                                                                    updateSlot(
+                                                                        i,
+                                                                        day,
+                                                                        j,
+                                                                        "start",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                            />
+                                                            <TextField
+                                                                type="time"
+                                                                size="small"
+                                                                value={slot.end}
+                                                                onChange={(e) =>
+                                                                    updateSlot(
+                                                                        i,
+                                                                        day,
+                                                                        j,
+                                                                        "end",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                            />
+                                                        </Box>
+                                                    ))}
+
+                                                {!dayData.fullDay && (
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => addSlot(i, day)}
+                                                    >
+                                                        + Slot
+                                                    </Button>
+                                                )}
+                                            </Box>
+                                        )}
+                                    </TableCell>
+                                );
+                            })}
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
 
             <Button variant="contained" onClick={generateJSON} sx={{ mt: 2 }}>
-                Generate JSON
+                Save Availability
             </Button>
         </Paper>
     );

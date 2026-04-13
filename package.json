@@ -7,6 +7,8 @@
     "client": "npm run dev --prefix client"
   },
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
   }
 }
