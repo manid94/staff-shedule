@@ -1,21 +1,32 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* Ensure proper focus and input handling in Electron */
+* {
+  -webkit-user-select: text;
+  -webkit-app-region: no-drag;
+}
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
+input, textarea, select {
+  -webkit-user-select: text;
+  -webkit-appearance: none;
+}
 
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* Ensure Material-UI inputs work properly */
+.MuiInputBase-root {
+  -webkit-user-select: text;
+}
+
+.MuiInputBase-input {
+  -webkit-user-select: text;
+  -webkit-appearance: none;
+}
+
+/* Fix for autocomplete inputs */
+.MuiAutocomplete-input {
+  -webkit-user-select: text;
 }
 
 .hero {

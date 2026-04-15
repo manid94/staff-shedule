@@ -22,6 +22,56 @@ const STORES = [
     "Jolly Fryer"
 ];
 
+const validateTime = (time) => {
+    if (!time) return true; // Allow empty
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+};
+
+const formatTimeInput = (value) => {
+    // Remove any non-numeric characters except colon
+    let cleaned = value.replace(/[^0-9:]/g, '');
+    
+    // Auto-format 4-digit input (HHMM -> HH:MM)
+    if (cleaned.length === 4 && !cleaned.includes(':')) {
+        const hours = cleaned.slice(0, 2);
+        const minutes = cleaned.slice(2, 4);
+        // Only format if hours are valid (00-23)
+        if (parseInt(hours) >= 0 && parseInt(hours) <= 23) {
+            cleaned = `${hours}:${minutes}`;
+        }
+    }
+    
+    // Auto-add colon after 2 digits if no colon exists yet
+    if (cleaned.length === 2 && !cleaned.includes(':')) {
+        cleaned = cleaned + ':';
+    }
+    
+    // Limit to 5 characters (HH:MM)
+    if (cleaned.length > 5) {
+        cleaned = cleaned.slice(0, 5);
+    }
+    
+    // If we have HH:M format, don't auto-complete the minutes
+    if (cleaned.length === 4 && cleaned[2] === ':') {
+        // Allow partial minutes (like "09:3")
+        return cleaned;
+    }
+    
+    // If we have HH:MM format, ensure proper formatting
+    if (cleaned.length === 5 && cleaned[2] === ':') {
+        const [hours, minutes] = cleaned.split(':');
+        const hourNum = parseInt(hours);
+        const minuteNum = parseInt(minutes);
+        
+        if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
+            return cleaned;
+        }
+    }
+    
+    return cleaned;
+};
+
 export default function AllotmentPage() {
     const [availability, setAvailability] = useState([]);
     const [allocations, setAllocations] = useState({});
@@ -205,6 +255,9 @@ export default function AllotmentPage() {
     };
 
     const getValidationError = (staffId, day, start, end, store) => {
+        if (!validateTime(start) || !validateTime(end)) {
+            return "Invalid time format (use HH:MM)";
+        }
         if (!isTimeAvailable(staffId, day, start, end)) {
             return "Time not available for this staff member";
         }
@@ -461,29 +514,33 @@ export default function AllotmentPage() {
                                                 />
 
                                                 <TextField
-                                                    type="time"
+                                                    type="text"
                                                     size="small"
-                                                    label="Start"
+                                                    label="Start (HH:MM)"
+                                                    placeholder="09:00"
                                                     value={row.start || ""}
                                                     inputProps={{ min: startMin, max: startMax }}
                                                     onChange={(e) =>
-                                                        updateRow(store, day, i, "start", e.target.value)
+                                                        updateRow(store, day, i, "start", formatTimeInput(e.target.value))
                                                     }
                                                     sx={{ mt: 1 }}
-                                                    error={!!hasError}
+                                                    error={!!hasError || !validateTime(row.start)}
+                                                    helperText={!validateTime(row.start) ? "Invalid time format" : ""}
                                                 />
 
                                                 <TextField
-                                                    type="time"
+                                                    type="text"
                                                     size="small"
-                                                    label="End"
+                                                    label="End (HH:MM)"
+                                                    placeholder="17:00"
                                                     value={row.end || ""}
                                                     inputProps={{ min: endMin, max: endMax }}
                                                     onChange={(e) =>
-                                                        updateRow(store, day, i, "end", e.target.value)
+                                                        updateRow(store, day, i, "end", formatTimeInput(e.target.value))
                                                     }
                                                     sx={{ mt: 1 }}
-                                                    error={!!hasError}
+                                                    error={!!hasError || !validateTime(row.end)}
+                                                    helperText={!validateTime(row.end) ? "Invalid time format" : ""}
                                                 />
 
                                                 {hasError && (

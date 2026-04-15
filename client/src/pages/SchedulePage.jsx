@@ -15,6 +15,56 @@ import {
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+const validateTime = (time) => {
+    if (!time) return true; // Allow empty
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+};
+
+const formatTimeInput = (value) => {
+    // Remove any non-numeric characters except colon
+    let cleaned = value.replace(/[^0-9:]/g, '');
+    
+    // Auto-format 4-digit input (HHMM -> HH:MM)
+    if (cleaned.length === 4 && !cleaned.includes(':')) {
+        const hours = cleaned.slice(0, 2);
+        const minutes = cleaned.slice(2, 4);
+        // Only format if hours are valid (00-23)
+        if (parseInt(hours) >= 0 && parseInt(hours) <= 23) {
+            cleaned = `${hours}:${minutes}`;
+        }
+    }
+    
+    // Auto-add colon after 2 digits if no colon exists yet
+    if (cleaned.length === 2 && !cleaned.includes(':')) {
+        cleaned = cleaned + ':';
+    }
+    
+    // Limit to 5 characters (HH:MM)
+    if (cleaned.length > 5) {
+        cleaned = cleaned.slice(0, 5);
+    }
+    
+    // If we have HH:M format, don't auto-complete the minutes
+    if (cleaned.length === 4 && cleaned[2] === ':') {
+        // Allow partial minutes (like "09:3")
+        return cleaned;
+    }
+    
+    // If we have HH:MM format, ensure proper formatting
+    if (cleaned.length === 5 && cleaned[2] === ':') {
+        const [hours, minutes] = cleaned.split(':');
+        const hourNum = parseInt(hours);
+        const minuteNum = parseInt(minutes);
+        
+        if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
+            return cleaned;
+        }
+    }
+    
+    return cleaned;
+};
+
 export default function SchedulePage() {
     const [staff, setStaff] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState([]);
@@ -238,36 +288,42 @@ export default function SchedulePage() {
                                                                 }}
                                                             >
                                                                 <TextField
-                                                                    type="time"
+                                                                    type="text"
                                                                     size="small"
-                                                                    label="Start"
+                                                                    label="Start (HH:MM)"
                                                                     value={slot.start}
+                                                                    placeholder="09:00"
                                                                     InputLabelProps={{ shrink: true }}
                                                                     sx={{ width: 130, minWidth: 130 }}
+                                                                    error={!validateTime(slot.start)}
+                                                                    helperText={!validateTime(slot.start) ? "Invalid time format" : ""}
                                                                     onChange={(e) =>
                                                                         updateSlot(
                                                                             i,
                                                                             day,
                                                                             j,
                                                                             "start",
-                                                                            e.target.value
+                                                                            formatTimeInput(e.target.value)
                                                                         )
                                                                     }
                                                                 />
                                                                 <TextField
-                                                                    type="time"
+                                                                    type="text"
                                                                     size="small"
-                                                                    label="End"
+                                                                    label="End (HH:MM)"
                                                                     value={slot.end}
+                                                                    placeholder="17:00"
                                                                     InputLabelProps={{ shrink: true }}
                                                                     sx={{ width: 130, minWidth: 130 }}
+                                                                    error={!validateTime(slot.end)}
+                                                                    helperText={!validateTime(slot.end) ? "Invalid time format" : ""}
                                                                     onChange={(e) =>
                                                                         updateSlot(
                                                                             i,
                                                                             day,
                                                                             j,
                                                                             "end",
-                                                                            e.target.value
+                                                                            formatTimeInput(e.target.value)
                                                                         )
                                                                     }
                                                                 />

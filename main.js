@@ -5,7 +5,14 @@ require("./server/server.js");
 function createWindow() {
     const win = new BrowserWindow({
         width: 1200,
-        height: 800
+        height: 800,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            enableRemoteModule: false,
+            webSecurity: true,
+            allowRunningInsecureContent: false
+        }
     });
 
     // retry loading until server ready

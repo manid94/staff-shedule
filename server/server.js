@@ -10,7 +10,15 @@ app.use(express.json());
 /* =========================================
    📌 FILE PATH
 ========================================= */
-const filePath = path.join(__dirname, "staff.json");
+// Use user data directory for persistent storage in packaged app
+const userDataPath = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
+const appDataDir = path.join(userDataPath, 'StaffScheduler');
+const filePath = path.join(appDataDir, "staff.json");
+
+// Ensure data directory exists
+if (!fs.existsSync(appDataDir)) {
+    fs.mkdirSync(appDataDir, { recursive: true });
+}
 
 /* =========================================
    📌 GET STAFF
@@ -49,7 +57,7 @@ app.post("/staff", (req, res) => {
 
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 
-        res.json({ success: true });
+        res.json(newStaff);
     } catch (err) {
         console.error("Error saving staff:", err);
         res.status(500).json({ error: "Failed to save staff" });
