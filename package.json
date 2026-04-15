@@ -1,6 +1,8 @@
 {
   "name": "staff-scheduler",
   "version": "1.0.0",
+  "description": "Staff Availability & Scheduling System",
+  "author": "Staff Scheduler Team",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/server.js",
@@ -29,8 +31,7 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis",
-      "sign": false
+      "target": "nsis"
     }
   }
 }
