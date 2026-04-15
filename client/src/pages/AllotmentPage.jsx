@@ -13,6 +13,9 @@ import {
 } from "@mui/material";
 import * as XLSX from "xlsx";
 
+// Check if running in Electron
+const isElectron = typeof window !== 'undefined' && window.electronAPI;
+
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const STORES = [
@@ -445,7 +448,26 @@ export default function AllotmentPage() {
         ws2['!rows'] = calculateRowHeights(staffRows);
         XLSX.utils.book_append_sheet(wb, ws2, "Staff Summary");
 
-        XLSX.writeFile(wb, "Allotment.xlsx");
+        // Export to Excel - works in both browser and Electron
+        const exportToExcelFile = (wb, filename) => {
+            try {
+                // Try Electron approach first
+                if (typeof window !== 'undefined' && window.electronAPI) {
+                    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+                    // Use Electron dialog to save file
+                    window.electronAPI.saveFile(buffer, filename);
+                } else {
+                    // Browser fallback
+                    XLSX.writeFile(wb, filename);
+                }
+            } catch (error) {
+                console.error('Export failed:', error);
+                // Fallback to browser download
+                XLSX.writeFile(wb, filename);
+            }
+        };
+
+        exportToExcelFile(wb, "Allotment.xlsx");
     };
 
     const validateAllAllocations = () => {
