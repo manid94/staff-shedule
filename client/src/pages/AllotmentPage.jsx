@@ -418,6 +418,23 @@ export default function AllotmentPage() {
         // Create workbook with two sheets
         const wb = XLSX.utils.book_new();
 
+        // Helper function to calculate column widths
+        const calculateColumnWidths = (data) => {
+            const widths = [];
+            if (!data || data.length === 0) return widths;
+
+            const keys = Object.keys(data[0]);
+            keys.forEach((key) => {
+                let maxLength = key.length;
+                data.forEach((row) => {
+                    const cellValue = row[key] ? row[key].toString() : "";
+                    maxLength = Math.max(maxLength, cellValue.length);
+                });
+                widths.push({ wch: Math.min(maxLength + 2, 50) });
+            });
+            return widths;
+        };
+
         // Helper function to calculate row heights (for content that might wrap)
         const calculateRowHeights = (data) => {
             const heights = [];
