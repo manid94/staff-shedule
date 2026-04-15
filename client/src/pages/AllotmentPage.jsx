@@ -415,12 +415,34 @@ export default function AllotmentPage() {
         // Create workbook with two sheets
         const wb = XLSX.utils.book_new();
 
+        // Helper function to calculate row heights (for content that might wrap)
+        const calculateRowHeights = (data) => {
+            const heights = [];
+            data.forEach(row => {
+                let maxLines = 1;
+                Object.values(row).forEach(cellValue => {
+                    if (cellValue && typeof cellValue === 'string') {
+                        // Estimate lines based on content length and commas (multiple staff entries)
+                        const commaCount = (cellValue.match(/,/g) || []).length;
+                        const estimatedLines = Math.max(1, Math.ceil(cellValue.length / 40) + commaCount);
+                        maxLines = Math.max(maxLines, estimatedLines);
+                    }
+                });
+                heights.push({ hpt: Math.max(20, maxLines * 15) }); // Minimum 20pt, 15pt per line
+            });
+            return heights;
+        };
+
         // Sheet 1: Store allocation
         const ws1 = XLSX.utils.json_to_sheet(rows);
+        ws1['!cols'] = calculateColumnWidths(rows);
+        ws1['!rows'] = calculateRowHeights(rows);
         XLSX.utils.book_append_sheet(wb, ws1, "Store Allocation");
 
         // Sheet 2: Staff summary
         const ws2 = XLSX.utils.json_to_sheet(staffRows);
+        ws2['!cols'] = calculateColumnWidths(staffRows);
+        ws2['!rows'] = calculateRowHeights(staffRows);
         XLSX.utils.book_append_sheet(wb, ws2, "Staff Summary");
 
         XLSX.writeFile(wb, "Allotment.xlsx");
