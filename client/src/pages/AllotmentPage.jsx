@@ -22,7 +22,9 @@ const STORES = [
     "Norton Fisheries",
     "Durham Lane",
     "MR Chippy",
-    "Jolly Fryer"
+    "Jolly Fryer",
+    "Norton Road fishbar",
+    "Stokesley fish and chips"
 ];
 
 const validateTime = (time) => {
